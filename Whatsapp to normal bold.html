@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp to LinkedIn Text Converter</title>
+    <style>
+        :root {
+            --primary: #0a66c2;
+            --primary-hover: #004182;
+            --bg: #f3f2ef;
+            --surface: #ffffff;
+            --text: #191919;
+            --text-muted: #666666;
+            --border: #e0e0e0;
+            --success: #057642;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(10, 102, 194, 0.1);
+        }
+
+        textarea[readonly] {
+            background-color: #fcfcfc;
+        }
+
+        .actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button.success {
+            background-color: var(--success);
+        }
+
+        .legend {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--bg);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .legend code {
+            background: #e8e8e8;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            color: var(--text);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>WhatsApp to LinkedIn</h1>
+        <p class="subtitle">Convert your WhatsApp-style markdown into LinkedIn-ready Unicode text.</p>
+    </header>
+
+    <div class="grid">
+        <div class="input-group">
+            <label for="inputText">Input</label>
+            <textarea id="inputText" placeholder="Type or paste your WhatsApp text here...&#10;&#10;Use *asterisks* for bold&#10;Use _underscores_ for italic&#10;Use ~tildes~ for strikethrough"></textarea>
+        </div>
+        
+        <div class="input-group">
+            <label for="outputText">LinkedIn Ready Output</label>
+            <textarea id="outputText" readonly placeholder="Your formatted text will appear here..."></textarea>
+            <div class="actions">
+                <button id="copyBtn">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <strong>Formatting Rules:</strong><br>
+        <code>*bold*</code> → 𝗯𝗼𝗹𝗱 (A-Z, a-z, 0-9)<br>
+        <code>_italic_</code> → 𝘪𝘵𝘢𝘭𝘪𝘤 (A-Z, a-z)<br>
+        <code>~strikethrough~</code> → s̶t̶r̶i̶k̶e̶t̶h̶r̶o̶u̶g̶h̶ (All characters)
+    </div>
+</div>
+
+<script>
+    const inputText = document.getElementById('inputText');
+    const outputText = document.getElementById('outputText');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // Unicode mapping offsets for Mathematical Sans-Serif
+    const UNICODE = {
+        bold: {
+            upper: 0x1D5D4 - 65, // A-Z
+            lower: 0x1D5EE - 97, // a-z
+            digit: 0x1D7EC - 48  // 0-9
+        },
+        italic: {
+            upper: 0x1D608 - 65, // A-Z
+            lower: 0x1D622 - 97  // a-z
+        },
+        strikethrough: '\u0336'
+    };
+
+    function convertToUnicode(text, type) {
+        return Array.from(text).map(char => {
+            const code = char.codePointAt(0);
+            
+            if (type === 'bold') {
+                if (code >= 65 && code <= 90) return String.fromCodePoint(code + UNICODE.bold.upper);
+                if (code >= 97 && code <= 122) return String.fromCodePoint(code + UNICODE.bold.lower);
+                if (code >= 48 && code <= 57) return String.fromCodePoint(code + UNICODE.bold.digit);
+            } 
+            else if (type === 'italic') {
+                if (code >= 65 && code <= 90) return String.fromCodePoint(code + UNICODE.italic.upper);
+                if (code >= 97 && code <= 122) return String.fromCodePoint(code + UNICODE.italic.lower);
+            }
+            else if (type === 'strikethrough') {
+                return char + UNICODE.strikethrough;
+            }
+            
+            return char;
+        }).join('');
+    }
+
+    function processMarkdown(text) {
+        let result = text;
+
+        // Bold: Matches *text* on a single line
+        result = result.replace(/\*([^\n*]+)\*/g, (match, group) => {
+            return convertToUnicode(group, 'bold');
+        });
+
+        // Italic: Matches _text_ on a single line
+        result = result.replace(/_([^\n_]+)_/g, (match, group) => {
+            return convertToUnicode(group, 'italic');
+        });
+
+        // Strikethrough: Matches ~text~ on a single line
+        result = result.replace(/~([^\n~]+)~/g, (match, group) => {
+            return convertToUnicode(group, 'strikethrough');
+        });
+
+        return result;
+    }
+
+    // Live update event listener
+    inputText.addEventListener('input', (e) => {
+        outputText.value = processMarkdown(e.target.value);
+    });
+
+    // Copy to clipboard functionality
+    copyBtn.addEventListener('click', async () => {
+        if (!outputText.value) return;
+
+        try {
+            await navigator.clipboard.writeText(outputText.value);
+            
+            // Visual success state
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            copyBtn.classList.add('success');
+            
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+                copyBtn.classList.remove('success');
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            alert('Failed to copy to clipboard. Please select and copy manually.');
+        }
+    });
+</script>
+
+</body>
+</html>
