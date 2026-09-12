@@ -139,6 +139,41 @@
             color: var(--text);
         }
 
+        /* Built By Badge Styles */
+        .built-by-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-decoration: none;
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease-in-out;
+            z-index: 1000;
+        }
+
+        .built-by-badge:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .built-by-badge svg {
+            transition: transform 0.2s ease;
+        }
+
+        .built-by-badge:hover svg {
+            transform: translateX(4px);
+        }
+
         @media (max-width: 768px) {
             .grid {
                 grid-template-columns: 1fr;
@@ -176,6 +211,15 @@
         <code>~strikethrough~</code> → s̶t̶r̶i̶k̶e̶t̶h̶r̶o̶u̶g̶h̶ (All characters)
     </div>
 </div>
+
+<!-- Built By Badge -->
+<a href="https://www.linkedin.com/in/arpanagrwl/" target="_blank" class="built-by-badge">
+  <span>Built by Arpan Agrawal</span>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+</a>
 
 <script>
     const inputText = document.getElementById('inputText');
